@@ -1,9 +1,9 @@
-package pemja.benchmark.StringUpper;
+package pemja.benchmark.interpreters;
 
 public interface Interpreter {
     void open(String pythonPath, String pythonFile);
 
-    void invoke(String name, Object... args);
+    Object invoke(String name, Object... args);
 
     void close();
 }

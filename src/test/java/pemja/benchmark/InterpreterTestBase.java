@@ -2,8 +2,8 @@ package pemja.benchmark;
 
 import org.junit.Before;
 import org.junit.Test;
-import pemja.benchmark.StringUpper.Interpreter;
-import pemja.benchmark.StringUpper.StringUpper;
+import pemja.benchmark.interpreters.Interpreter;
+import pemja.benchmark.interpreters.StringFactory;
 
 import java.io.File;
 import java.util.concurrent.CountDownLatch;
@@ -20,53 +20,79 @@ public abstract class InterpreterTestBase {
     }
 
     @Test
-    public void testStringUpper() {
+    public void testStringUpper() throws Exception {
+        testInSingleThread(100, "str_upper_udf", "str_upper_udf.upper");
+        testInSingleThread(1 << 10, "str_upper_udf", "str_upper_udf.upper");
+        testInMultiThreads(100, 3, "str_upper_udf", "str_upper_udf.upper");
+        testInMultiThreads(1 << 10, 3, "str_upper_udf", "str_upper_udf.upper");
+    }
+
+    @Test
+    public void testJsonString() throws Exception {
+        testInSingleThread(100, "json_udf", "json_udf.json");
+        testInSingleThread(1 << 10, "json_udf", "json_udf.json");
+        testInMultiThreads(100, 3, "json_udf", "json_udf.json");
+        testInMultiThreads(1 << 10, 3, "json_udf", "json_udf.json");
+    }
+
+    private void testInSingleThread(int dataLength, String pythonFile, String methodName) {
 
         Interpreter instance = getInterpreterInstance();
 
-        String str = StringUpper.createString(1 << 10);
+        StringFactory factory = new StringFactory(0, dataLength);
         long start = System.currentTimeMillis();
-        int num = getRounds();
-        instance.open(path, "upper");
+        int num = recordsNum();
+        instance.open(path, pythonFile);
         for (int i = 0; i < num; i++) {
-            instance.invoke("upper.upper", str);
+            instance.invoke(methodName, factory.nextString());
         }
         instance.close();
         long end = System.currentTimeMillis();
         long consume = end - start;
         System.out.println(String.format("Run time is %s s", consume));
-        System.out.println(String.format("The interpreter %s QPS is %s", instance.getClass().getName(), num * 1000.0 / consume));
+        System.out.println(
+                String.format(
+                        "The interpreter %s QPS in %s is %s with input data length is %s",
+                        this, methodName, (int) (num * 1000.0 / consume), dataLength));
     }
 
-    @Test
-    public void testStringUpperInMultiThreads() throws InterruptedException {
-        int num = getRounds();
-        int threadsNum = 3;
+    private void testInMultiThreads(
+            int dataLength, int threadsNum, String pythonFile, String methodName) throws Exception {
+        int num = recordsNum();
         CountDownLatch latch = new CountDownLatch(threadsNum);
         ExecutorService service = Executors.newFixedThreadPool(threadsNum);
-        String str = StringUpper.createString(1 << 10);
-        Thread thread = new Thread(() -> {
-            long start = System.currentTimeMillis();
-            Interpreter instance = getInterpreterInstance();
-            instance.open(path, "upper");
-            for (int i = 0; i < num; i++) {
-                instance.invoke("upper.upper", str);
-            }
-            instance.close();
-            long end = System.currentTimeMillis();
-            long consume = end - start;
-            System.out.println(String.format("Run time is %s s", consume));
-            System.out.println(String.format("The interpreter %s QPS is %s", instance.getClass().getName(), num * 1000.0 / consume));
-            latch.countDown();
-        });
+        long start = System.currentTimeMillis();
+        Thread thread =
+                new Thread(
+                        () -> {
+                            StringFactory factory = new StringFactory(0, dataLength);
+                            Interpreter instance = getInterpreterInstance();
+                            instance.open(path, pythonFile);
+                            for (int i = 0; i < num; i++) {
+                                instance.invoke(methodName, factory.nextString());
+                            }
+                            instance.close();
+                            latch.countDown();
+                        });
         for (int i = 0; i < threadsNum; i++) {
             service.submit(thread);
         }
         latch.await();
         service.shutdown();
+        long end = System.currentTimeMillis();
+        long consume = end - start;
+        System.out.println(String.format("Run time is %s s", consume));
+        System.out.println(
+                String.format(
+                        "The interpreter %s QPS in %s is %s with %s threads, input data length is %s",
+                        this,
+                        methodName,
+                        (int) (num * threadsNum * 1000.0 / consume),
+                        threadsNum,
+                        dataLength));
     }
 
     abstract Interpreter getInterpreterInstance();
 
-    abstract int getRounds();
+    abstract int recordsNum();
 }

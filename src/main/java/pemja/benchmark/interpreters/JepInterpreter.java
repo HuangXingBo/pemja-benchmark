@@ -1,4 +1,4 @@
-package pemja.benchmark.StringUpper;
+package pemja.benchmark.interpreters;
 
 import jep.Jep;
 import jep.JepConfig;
@@ -27,9 +27,9 @@ public class JepInterpreter implements Interpreter {
     }
 
     @Override
-    public void invoke(String name, Object... args) {
+    public Object invoke(String name, Object... args) {
         try {
-            interp.invoke(name, args);
+            return interp.invoke(name, args);
         } catch (JepException e) {
             throw new RuntimeException("Failed to invoke functions.", e);
         }

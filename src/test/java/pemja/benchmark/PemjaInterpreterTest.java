@@ -1,7 +1,7 @@
 package pemja.benchmark;
 
-import pemja.benchmark.StringUpper.Interpreter;
-import pemja.benchmark.StringUpper.PemjaInterpreter;
+import pemja.benchmark.interpreters.Interpreter;
+import pemja.benchmark.interpreters.PemjaInterpreter;
 
 public class PemjaInterpreterTest extends InterpreterTestBase {
     @Override
@@ -10,7 +10,12 @@ public class PemjaInterpreterTest extends InterpreterTestBase {
     }
 
     @Override
-    int getRounds() {
-        return 10000000;
+    int recordsNum() {
+        return 5000000;
+    }
+
+    @Override
+    public String toString() {
+        return "PemjaInterpreter";
     }
 }

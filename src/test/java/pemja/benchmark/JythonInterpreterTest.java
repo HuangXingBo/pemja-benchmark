@@ -1,8 +1,7 @@
 package pemja.benchmark;
 
-import pemja.benchmark.StringUpper.Interpreter;
-import pemja.benchmark.StringUpper.JythonInterpreter;
-
+import pemja.benchmark.interpreters.Interpreter;
+import pemja.benchmark.interpreters.JythonInterpreter;
 
 public class JythonInterpreterTest extends InterpreterTestBase {
 
@@ -12,7 +11,12 @@ public class JythonInterpreterTest extends InterpreterTestBase {
     }
 
     @Override
-    int getRounds() {
+    int recordsNum() {
         return 50000;
+    }
+
+    @Override
+    public String toString() {
+        return "JythonInterpreter";
     }
 }
