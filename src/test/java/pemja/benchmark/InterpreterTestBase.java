@@ -34,7 +34,7 @@ public abstract class InterpreterTestBase {
         testInSingleThread(100, num, "json_udf", "json_udf.json");
         testInSingleThread(1 << 10, num, "json_udf", "json_udf.json");
         testInSingleThread(10 * (1 << 10), num / 5, "json_udf", "json_udf.json");
-        testInSingleThread(100 * (1 << 10), num / 10, "json_udf", "json_udf.json");
+        testInSingleThread(100 * (1 << 10), num / 50, "json_udf", "json_udf.json");
         testInMultiThreads(100, 3, "json_udf", "json_udf.json");
         testInMultiThreads(1 << 10, 3, "json_udf", "json_udf.json");
     }
