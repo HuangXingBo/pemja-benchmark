@@ -21,29 +21,31 @@ public abstract class InterpreterTestBase {
 
     @Test
     public void testStringUpper() throws Exception {
-        testInSingleThread(100, "str_upper_udf", "str_upper_udf.upper");
-        testInSingleThread(1 << 10, "str_upper_udf", "str_upper_udf.upper");
+        int num = recordsNum();
+        testInSingleThread(100, num, "str_upper_udf", "str_upper_udf.upper");
+        testInSingleThread(1 << 10, num, "str_upper_udf", "str_upper_udf.upper");
         testInMultiThreads(100, 3, "str_upper_udf", "str_upper_udf.upper");
         testInMultiThreads(1 << 10, 3, "str_upper_udf", "str_upper_udf.upper");
     }
 
     @Test
     public void testJsonString() throws Exception {
-        testInSingleThread(100, "json_udf", "json_udf.json");
-        testInSingleThread(1 << 10, "json_udf", "json_udf.json");
-        testInSingleThread(10 * (1 << 10), "json_udf", "json_udf.json");
-        testInSingleThread(100 * (1 << 10), "json_udf", "json_udf.json");
+        int num = recordsNum();
+        testInSingleThread(100, num, "json_udf", "json_udf.json");
+        testInSingleThread(1 << 10, num, "json_udf", "json_udf.json");
+        testInSingleThread(10 * (1 << 10), num / 5, "json_udf", "json_udf.json");
+        testInSingleThread(100 * (1 << 10), num / 10, "json_udf", "json_udf.json");
         testInMultiThreads(100, 3, "json_udf", "json_udf.json");
         testInMultiThreads(1 << 10, 3, "json_udf", "json_udf.json");
     }
 
-    private void testInSingleThread(int dataLength, String pythonFile, String methodName) {
+    private void testInSingleThread(int dataLength, int num, String pythonFile, String methodName) {
 
         Interpreter instance = getInterpreterInstance();
 
         StringFactory factory = new StringFactory(0, dataLength);
         long start = System.currentTimeMillis();
-        int num = recordsNum();
+
         instance.open(path, pythonFile);
         for (int i = 0; i < num; i++) {
             instance.invoke(methodName, factory.nextString());
