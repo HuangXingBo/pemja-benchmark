@@ -31,6 +31,8 @@ public abstract class InterpreterTestBase {
     public void testJsonString() throws Exception {
         testInSingleThread(100, "json_udf", "json_udf.json");
         testInSingleThread(1 << 10, "json_udf", "json_udf.json");
+        testInSingleThread(10 * (1 << 10), "json_udf", "json_udf.json");
+        testInSingleThread(100 * (1 << 10), "json_udf", "json_udf.json");
         testInMultiThreads(100, 3, "json_udf", "json_udf.json");
         testInMultiThreads(1 << 10, 3, "json_udf", "json_udf.json");
     }
@@ -49,7 +51,7 @@ public abstract class InterpreterTestBase {
         instance.close();
         long end = System.currentTimeMillis();
         long consume = end - start;
-        System.out.println(String.format("Run time is %s s", consume));
+        System.out.println(String.format("Run time is %s ms", consume));
         System.out.println(
                 String.format(
                         "The interpreter %s QPS in %s is %s with input data length is %s",
